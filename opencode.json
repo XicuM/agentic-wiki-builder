@@ -29,7 +29,7 @@
       ],
       "environment": {
         "PROJECT_ROOT": "/home/user/Projects/agentic-wiki-builder",
-        "SEMANTIC_SCHOLAR_API_KEY": "REDACTED"
+        "SEMANTIC_SCHOLAR_API_KEY": ""
       }
     }
   }

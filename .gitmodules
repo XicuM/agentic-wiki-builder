@@ -3,4 +3,4 @@
 	url = ./user
 [submodule "wiki"]
 	path = wiki
-	url = ./wiki
+	url = /home/user/Projects/hpdsa_wiki/wiki

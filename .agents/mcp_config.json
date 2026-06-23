@@ -21,6 +21,15 @@
         "PROJECT_ROOT": "/home/user/Projects/agentic-wiki-builder",
         "SEMANTIC_SCHOLAR_API_KEY": "REDACTED"
       }
+    },
+    "menumaker": {
+      "command": "/home/user/Projects/agentic-wiki-builder/.venv/bin/python",
+      "args": [
+        "/home/user/Projects/agentic-wiki-builder/.agents/mcp/menumaker/server.py"
+      ],
+      "env": {
+        "MENUMAKER_DATA_DIR": "/home/user/Projects/agentic-wiki-builder/.agents/mcp/menumaker/data"
+      }
     }
   }
 }

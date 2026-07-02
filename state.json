@@ -671,6 +671,32 @@
       "tags": [
         "psychology"
       ]
+    },
+    {
+      "id": "ramulator_dram_simulator",
+      "type": "Literature",
+      "path": "sources/literature/computer_architecture/ramulator_dram_simulator/raw.md",
+      "summary": "Ramulator: Fast, cycle-accurate DRAM simulator based on generalized state-machine template. 2.5\u00d7 faster, supports DDR3/4/5, LPDDR3/4/5, GDDR5/6, HBM/HBM3, BSD-licensed.",
+      "enqueued_at": "2026-07-02T16:32:46.721681",
+      "status": "pending",
+      "tags": [
+        "computer_architecture",
+        "memory_systems",
+        "DRAM"
+      ]
+    },
+    {
+      "id": "ramulator2_dram_simulator",
+      "type": "Literature",
+      "path": "sources/literature/computer_architecture/ramulator2_dram_simulator/raw.md",
+      "summary": "Ramulator 2.0: Complete rewrite with modular plugin architecture. DDR5, LPDDR5, HBM3, GDDR6, RowHammer mitigations as drop-in plugins, MIT-licensed.",
+      "enqueued_at": "2026-07-02T16:32:47.726574",
+      "status": "pending",
+      "tags": [
+        "computer_architecture",
+        "memory_systems",
+        "DRAM"
+      ]
     }
   ],
   "orchestration": {

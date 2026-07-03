@@ -3,7 +3,7 @@
 	url = ./user
 [submodule "wiki"]
 	path = wiki
-	url = /home/user/Projects/hpdsa_wiki/wiki
-[submodule "sources/internal_documentation/hpdsa_documents"]
-	path = sources/internal_documentation/hpdsa_documents
-	url = git@gitlab-internal.bsc.es:hpdsa/documents.git
+	url = git@gitlab-internal.bsc.es:xmaripra/hpdsa-wiki-wiki.git
+[submodule "sources"]
+	path = sources
+	url = git@gitlab-internal.bsc.es:xmaripra/hpdsa-wiki-sources.git

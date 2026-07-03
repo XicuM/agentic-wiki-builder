@@ -119,18 +119,26 @@ def main():
         print("   To install it, please run:")
         print("     npm install -g @tobilu/qmd")
         print()
+        installed = False
         if shutil.which("npm"):
             choice = input("Would you like this script to attempt installing it globally via npm? (y/n): ").strip().lower()
             if choice == "y":
                 print("Installing @tobilu/qmd globally...")
                 run_command(["npm", "install", "-g", "@tobilu/qmd"], check=False)
                 print()
+                if shutil.which("qmd"):
+                    installed = True
             else:
                 print("Skipping automatic installation.")
                 print()
         else:
             print("⚠️  npm not found. Please install Node.js/npm and install qmd manually.")
             print()
+            
+        if not installed:
+            print("❌ ERROR: 'qmd' is a required dependency for the agentic tools to function.")
+            print("   Please install it (e.g. 'npm install -g @tobilu/qmd') and run setup.py again.")
+            sys.exit(1)
     else:
         print("✓ QMD CLI found.")
         print()

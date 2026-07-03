@@ -1,12 +1,55 @@
 {
   "collapse-filter": false,
-  "search": "",
+  "search": "-file:_index.md -file:raw.md -file:results_tracker -file:hpdsa_works -file:cross_paper_",
   "showTags": false,
   "showAttachments": false,
-  "hideUnresolved": false,
-  "showOrphans": true,
+  "hideUnresolved": true,
+  "showOrphans": false,
   "collapse-color-groups": true,
-  "colorGroups": [],
+  "colorGroups": [
+    {
+      "query": "[\"category\":llms_for_chip_design]",
+      "color": {
+        "a": 1,
+        "rgb": 14048348
+      }
+    },
+    {
+      "query": "[\"category\":biohpc]",
+      "color": {
+        "a": 1,
+        "rgb": 6346622
+      }
+    },
+    {
+      "query": "[\"category\":post_quantum_crypto]",
+      "color": {
+        "a": 1,
+        "rgb": 12411095
+      }
+    },
+    {
+      "query": "[\"category\":tensor_marshalling_unit]",
+      "color": {
+        "a": 1,
+        "rgb": 15259230
+      }
+    },
+    {
+      "query": "[\"category\":riscv_cores]",
+      "color": {
+        "a": 1,
+        "rgb": 6328535
+      }
+    },
+    {
+      "query": "[\"category\":manycore]",
+      "color": {
+        "a": 1,
+        "rgb": 14128736
+      }
+    }
+  ],
   "collapse-display": true,
   "showArrow": true,
   "textFadeMultiplier": 0,
@@ -17,6 +60,6 @@
   "repelStrength": 10,
   "linkStrength": 1,
   "linkDistance": 250,
-  "scale": 0.7023319615912206,
-  "close": true
+  "scale": 0.6660383566047576,
+  "close": false
 }

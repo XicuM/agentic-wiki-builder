@@ -4,24 +4,39 @@
     "type": "split",
     "children": [
       {
-        "id": "a3976adaf7d6424e",
+        "id": "ef317fa7b7c1ab87",
         "type": "tabs",
         "children": [
           {
-            "id": "747562c753ac01c6",
+            "id": "6f5104ea36fe38a9",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "wiki/nutrition/cooking_methods.md",
-                "mode": "source",
+                "file": "wiki/hpdsa_members.md",
+                "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "cooking_methods"
+              "title": "hpdsa_members"
+            }
+          },
+          {
+            "id": "cd97f69728cb4977",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "AGENTS.md",
+                "mode": "preview",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "AGENTS"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -53,7 +68,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "ramulator",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -78,8 +93,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 334.5,
-    "collapsed": true
+    "width": 299.5
   },
   "right": {
     "id": "78b36a7bebe704eb",
@@ -95,7 +109,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "literature/grgic_2018_resistance_training_frequency_summary.md",
+                "file": "sources/literature/riscv_cores/soria_2022_sargantana_riscv_core/original.pdf",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -105,7 +119,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for grgic_2018_resistance_training_frequency_summary"
+              "title": "Backlinks for original"
             }
           },
           {
@@ -165,13 +179,23 @@
               "icon": "lucide-list",
               "title": "Outline of grgic_2018_resistance_training_frequency_summary"
             }
+          },
+          {
+            "id": "538dc9fe54a3c795",
+            "type": "leaf",
+            "state": {
+              "type": "co-ober-view",
+              "state": {},
+              "icon": "terminal-square",
+              "title": "Co-Ober"
+            }
           }
-        ]
+        ],
+        "currentTab": 5
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 518.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -181,46 +205,49 @@
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
       "command-palette:Open command palette": false,
-      "bases:Create new base": false
+      "bases:Create new base": false,
+      "co-ober:Open Co-Ober": false
     }
   },
-  "active": "747562c753ac01c6",
+  "active": "cd97f69728cb4977",
   "lastOpenFiles": [
-    "logs/2026-05.md",
+    "sources/internal_documentation/hpdsa_meetings/Meetings-2024/20241106-BioHPC-TeamMeeting.md",
+    "wiki/biohpc/quicked_exact_alignment.md",
+    "wiki/cross_paper_insights.md",
+    "wiki/biohpc/smough_chromosome_alignment.md",
+    "wiki/hpdsa_members.md",
+    "sources/internal_documentation/hpdsa_documents/README.md",
+    "sources/literature/computer_architecture/oliete_2026_reptiles/metadata.md",
+    "sources/literature/computer_architecture/oliete_2026_reptiles/raw.md",
+    "sources/literature/computer_architecture/smx_doblas_2025_sequence_alignment/original.pdf",
+    "sources/literature/computer_architecture/smx_doblas_2025_sequence_alignment/raw.md",
+    "wiki/biohpc/smx_heterogeneous_alignment.md",
     "AGENTS.md",
     "README.md",
-    "sources/_index.md",
-    "sources/literature/psychology/quinton_2022_free_will_belief/metadata.md",
-    "sources/literature/psychology/quinton_2022_free_will_belief/original.pdf",
-    "sources/literature/psychology/quinton_2022_free_will_belief/raw.md",
-    "sources/literature/psychology/_index.md",
-    "wiki/personal/psychology/libertarian_freedom.md",
-    "sources/literature/psychology/quinton_2022_free_will_belief",
-    "sources/literature/psychology/escohotado_2008_los_enemigos/metadata.md",
-    "sources/literature/psychology/escohotado_2008_los_enemigos/raw.md",
-    "sources/literature/psychology/sagan_1980_cosmos/raw.md",
-    "sources/literature/psychology/sagan_1980_cosmos/metadata.md",
-    "wiki/personal/psychology/rumination_and_stress_mechanisms.md",
-    "user/protocols/personal/state_transitions.md",
-    "user/portfolio.md",
-    "wiki/personal/psychology/contrast_dynamic_states.md",
-    "wiki/personal/psychology/existential_finitude.md",
-    "sources/literature/psychology/chanda_2013_music_neurochemistry/raw.md",
-    "sources/literature/psychology/chanda_2013_music_neurochemistry/metadata.md",
-    "sources/literature/psychology/chanda_2013_music_neurochemistry",
-    "sources/literature/psychology/escohotado_2008_los_enemigos",
-    "sources/literature/psychology/sagan_1980_cosmos",
-    "sources/literature/psychology/dillman_hasso_2020_art_evaluation/metadata.md",
-    "sources/literature/psychology/dillman_hasso_2020_art_evaluation/raw.md",
-    "sources/literature/psychology/dillman_hasso_2020_art_evaluation/original.pdf",
-    "sources/literature/psychology/dillman_hasso_2020_art_evaluation",
-    "user/feedback.md",
-    "user/_index.md",
-    "user/protocols/_index.md",
-    "user/protocols/professional/_index.md",
-    "user/protocols/personal/entropy_serendipity.md",
-    "wiki/professional/architecture/ai_hardware/tmu",
-    "wiki/professional/architecture/ai_hardware",
-    "wiki/professional/architecture/sparse_computing"
+    "wiki/results_tracker.md",
+    "wiki/llms_for_chip_design/agentic_rtl_frameworks.md",
+    "wiki/post_quantum_crypto/classic_mceliece_accelerator.md",
+    "wiki/tensor_marshalling_unit/tmu_sparse_tensor_algebra.md",
+    "wiki/tensor_marshalling_unit/cohort_engine.md",
+    "sources/literature/riscv_cores/soria_2022_sargantana_riscv_core/original.pdf",
+    "sources/internal_documentation/hpdsa_documents/presentations/2024-ISCA-Guillem_Lopez.pdf",
+    "sources/internal_documentation/hpdsa_documents/grants/2021-FI-Guillem_Lopez_accepted.pdf",
+    "sources/literature/memory_systems/alvarez_2015_scratchpad_coherence/original.pdf",
+    "sources/literature/memory_systems/alvarez_2015_scratchpad_coherence/metadata.md",
+    "wiki/riscv_cores/mix_gemm_dnn_acceleration.md",
+    "sources/literature/riscv_cores/reggiani_2023_mix_gemm_mixed_precision_dnn/original.pdf",
+    "opencode-sync/edit-2026-07-02-fqhoe1",
+    "opencode-sync/edit-2026-07-02-4acw78",
+    "opencode-sync/edit-2026-07-02-anl8u2",
+    "opencode-sync/edit-2026-07-02-2xmp3p",
+    "sources/internal_documentation/hpdsa_documents/publications/2021-06-ICS-abarredo/figs/execution_example.svg",
+    "sources/internal_documentation/hpdsa_documents/publications/2021-06-ICS-abarredo/figs/README.md",
+    "sources/internal_documentation/hpdsa_documents/publications/2021-06-ICS-abarredo/README.md",
+    "wiki/biohpc/projects_overview.md",
+    "wiki/manycore/leaf_multifpga_emulation.md",
+    "wiki/memory_systems/planar_near_memory_rearrangement.md",
+    "wiki/general/hpdsa_works.md",
+    "wiki/manycore/reptiles_multicore.md",
+    "wiki/riscv_cores/Untitled.canvas"
   ]
 }

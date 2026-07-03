@@ -8,17 +8,58 @@ The architecture is entirely **filesystem-driven** and framework-agnostic. Multi
 
 ## 🚀 The Workflow Pipeline
 
-Evidence progresses through a strict pipeline with a formal **Hierarchy of Evidence**:
+Evidence progresses through a strict, tool-supported pipeline with a formal **Hierarchy of Evidence**, powered by custom Model Context Protocol (MCP) servers and localized skills.
 
 ```mermaid
-graph TD
-    Sources[1. Sources / Raw Literature] -->|Ingested by Synthesizer| Wiki[2. Wiki / Objective Knowledge]
-    Wiki -->|Tailored by Protocol Architect| Protocols[3. Protocols / Personalized Actions]
+flowchart TD
+    subgraph SourcesZone ["Sources and Inputs"]
+        A[\"Academic Papers\"/] -- "research-mcp" --> B[["download_paper"]]
+        C[\"Google Drive Files\"/] -- "google-drive-mcp" --> D[["gdrive_download_file"]]
+        B -- "Enqueues raw.md" --> Queue[(state.json Queue)]
+        D -- "Enqueues internal docs" --> Queue
+    end
+
+    subgraph WikiZone ["Wiki / Objective Knowledge"]
+        Queue -- "Ingest Skill / wiki-mcp" --> Wiki[(wiki/ Submodule)]
+        Wiki -- "Fact-Check / audit-agent" --> Verification{"Claims Verification"}
+        B & D -- "Verify sources" --> Verification
+    end
+
+    subgraph OutputZone ["Output / Protocols"]
+        Wiki -- "Build Protocol / wiki-mcp" --> Protocols[(user/protocols/ Submodule)]
+    end
 ```
 
-1. **Research (Source Discovery):** Discovers literature or internal data, stages files in `sources/`, and logs items in `state.json`.
-2. **Ingest (Synthesis):** Compiles and resolves raw source material into the objective, anonymized `wiki/` knowledge base.
-3. **Build Protocol (Actionable Output):** Adapts objective Wiki knowledge to a user's specific goals, constraints, and physiological parameters in `user/protocols/`.
+### 1. Source Discovery & Queueing (`research-mcp` & `google-drive-mcp`)
+* **Discovery:** The **Researcher** discovers academic papers via the `search_literature` tool (queries PubMed, OpenAlex, arXiv, Semantic Scholar, etc.) or searches internal files on Google Drive via `gdrive_list_files`.
+* **Download & Extraction:** The paper is downloaded using the `download_paper` tool (or `gdrive_download_file` for internal documents). 
+  - The PDF is fetched and text is extracted using `markitdown` to create a `raw.md` text document.
+  - A bibliographic markdown summary `metadata.md` is generated.
+  - The files are written under `sources/literature/<domain>/<filename_base>/` (or `sources/internal_documentation/`).
+* **Manifest Entry:** The tool automatically enqueues the item as `"status": "pending"` in the master ingestion manifest `state.json`. Alternatively, the agent can manually use `queue_enqueue`.
+
+### 2. Wiki Ingestion & Synthesis (`wiki-mcp` & `research-mcp`)
+* **Queue Ingestion:** The **Synthesizer** checks the manifest queue via the `queue_list` tool (or reads the `research://state` resource) to find pending items.
+* **Context Retrieval & Integration:** The agent reads the extracted `raw.md`, then queries the existing wiki using `wiki-mcp` search tools (`wiki_query`, `wiki_vsearch`, `wiki_search`) to contextually relate findings.
+* **Synthesis:** The agent updates or creates objective, anonymized files in the `wiki/` submodule, ensuring:
+  - Statements are footnoted (using `markdown-it` footnotes `[^1]`) back to `sources/`.
+  - Confidence callouts (`> ⚠️`) specify the level of consensus.
+  - Metadata is saved in standard YAML frontmatter.
+* **Validation & Queue Cleanup:** The agent updates the domain's `_index.md`, rebuilds the vector/semantic search database using `wiki_update_index`, and validates page formatting/links using `lint_check_links`. Once successful, the agent marks the item complete and removes it from the queue using `queue_dequeue`.
+
+### 3. Protocol Design & Tailoring (`wiki-mcp`)
+* **Adaptation:** The **Protocol Architect** designs step-by-step actionable protocols inside `user/protocols/` based on the user's traits (`user/profile.md`) and compliance feedback (`user/feedback.md`).
+* **Scientific Grounding:** The agent retrieves backing science from the wiki using `wiki_query`/`wiki_vsearch` and footnotes every recommendation to the relative `wiki/` note path.
+* **Validation:** The agent runs `wiki_update_index` and `lint_check_links` on `user/` to verify structural constraints.
+
+### 4. Verification & Auditing (`wiki-mcp` & `research-mcp`)
+* **Fact-Checking:** When auditing user requests or workspace updates, the **Auditor** breaks the text into atomic claims and verifies them against the wiki (using `wiki_query`) and literature (using `search_literature`).
+* **Validation Audits:** Automated link, footnote, folder-bloat, and YAML checks are run on-demand using `lint_check_links` to prevent reference drift.
+
+### 5. Financial Calculation & Tracking (`finance-mcp`)
+* **Calculation:** Provides compound annual growth rate calculations (`calc_cagr`), future value projections (`calc_fv`), DCA forecasting (`calc_dca`), and portfolio weights optimization (`calc_weights`).
+* **Market Data:** Retrieves stock prices (`stock_price`) and FinBERT sentiment-annotated stock news (`stock_news`).
+* **Expense Analysis:** Ingests Trade Republic statement CSV exports (`expense_parse`) into a unified `transactions.csv` file, queries historical/monthly spend patterns (`expense_monthly`, `expense_range`, `expense_top`), and exports monthly summaries (`expense_export_monthly`).
 
 ---
 
@@ -49,13 +90,19 @@ graph TD
 Follow these steps to set up the project locally:
 
 ### 1. Clone the Repository
-Clone the repository along with its submodules:
+Clone the repository:
 ```bash
-git clone --recursive https://github.com/XicuM/agentic-wiki-builder.git
+git clone https://github.com/XicuM/agentic-wiki-builder.git
 cd agentic-wiki-builder
 ```
 
-### 2. Configure Environment & Dependencies
+### 2. Run Automated Git Setup
+Run the setup script to configure Git LFS, pull submodules, and automate background pulls/pushes for the team:
+```bash
+python setup.py
+```
+
+### 3. Configure Environment & Dependencies
 Create a virtual environment and install the required dependencies:
 ```bash
 python -m venv .venv

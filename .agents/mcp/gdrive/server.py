@@ -37,6 +37,18 @@ INTERNAL_DOC_DIR = ROOT / "sources" / "internal_documentation"
 
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 
+DEFAULT_CLIENT_CONFIG = {
+    "installed": {
+        "client_id": "YOUR_CLIENT_ID.apps.googleusercontent.com",
+        "project_id": "your-project-id",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_secret": "YOUR_CLIENT_SECRET",
+        "redirect_uris": ["http://localhost"]
+    }
+}
+
 # ── Authentication Helper ──────────────────────────────────────────────────────
 
 def get_credentials():
@@ -68,18 +80,10 @@ def get_credentials():
             from google.auth.transport.requests import Request
             creds.refresh(Request())
         else:
-            if os.path.exists(credentials_path):
-                raise RuntimeError(
-                    f"OAuth tokens are expired or missing. Please run the authentication flow by executing:\n"
-                    f"PROJECT_ROOT={ROOT} .venv/bin/python .agents/mcp/gdrive/server.py --auth"
-                )
-            else:
-                raise RuntimeError(
-                    f"No Google Drive credentials found. Please place either:\n"
-                    f"  1. A service account key JSON at: {service_account_path}\n"
-                    f"  2. An OAuth client credentials JSON at: {credentials_path} and run auth using:\n"
-                    f"     PROJECT_ROOT={ROOT} .venv/bin/python .agents/mcp/gdrive/server.py --auth"
-                )
+            raise RuntimeError(
+                f"Google Drive OAuth token is missing or expired. Please run the automatic setup/authentication flow:\n"
+                f"PROJECT_ROOT={ROOT} .venv/bin/python .agents/mcp/gdrive/server.py --auth"
+            )
     return creds
 
 # ── Helper for snake_case conversion ──────────────────────────────────────────
@@ -254,17 +258,13 @@ if __name__ == "__main__":
         )
         
         if not os.path.exists(credentials_path):
-            print(f"Error: Credentials file not found at '{credentials_path}'")
-            print("Please follow these steps:")
-            print("1. Go to Google Cloud Console (https://console.cloud.google.com/)")
-            print("2. Enable the Google Drive API for your project")
-            print("3. Go to APIs & Services > Credentials")
-            print("4. Click Create Credentials > OAuth client ID. Select Application type: Desktop app")
-            print(f"5. Download the JSON file and save it to: {credentials_path}")
-            sys.exit(1)
+            print("Credentials file not found. Using default application credentials...")
+            flow = InstalledAppFlow.from_client_config(DEFAULT_CLIENT_CONFIG, SCOPES)
+        else:
+            print("Using user-provided credentials.json...")
+            flow = InstalledAppFlow.from_client_secrets_file(credentials_path, SCOPES)
             
         print("Starting OAuth interactive flow. Opening browser...")
-        flow = InstalledAppFlow.from_client_secrets_file(credentials_path, SCOPES)
         creds = flow.run_local_server(port=0)
         
         with open(token_path, "w") as token:

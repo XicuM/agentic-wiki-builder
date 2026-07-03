@@ -6,159 +6,154 @@ Automated bootstrap, Git configuration, dependency setup, and Google Drive integ
 import subprocess
 import sys
 import shutil
+import os
 from pathlib import Path
 
+# Embedded default Google Drive Client Configuration for OAuth 2.0
+DEFAULT_CLIENT_CONFIG = {
+    "installed": {
+        "client_id": "YOUR_CLIENT_ID.apps.googleusercontent.com",
+        "project_id": "your-project-id",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_secret": "YOUR_CLIENT_SECRET",
+        "redirect_uris": ["http://localhost"]
+    }
+}
+
+# Try to import rich; if not available, define a fallback console
+try:
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.prompt import Prompt, Confirm
+    from rich.text import Text
+    HAS_RICH = True
+except ImportError:
+    HAS_RICH = False
+
+class FallbackConsole:
+    def print(self, *args, **kwargs):
+        import re
+        text = " ".join(str(x) for x in args)
+        # Strip simple rich formatting tags
+        text = re.sub(r'\[/?[a-zA-Z0-9_\s#=/-]+\]', '', text)
+        print(text, **kwargs)
+        
+    def rule(self, title="", *args, **kwargs):
+        print("\n" + "=" * 60)
+        if title:
+            print(f"  {title}")
+            print("=" * 60 + "\n")
+
+# Initialize console
+if HAS_RICH:
+    console = Console()
+else:
+    console = FallbackConsole()
+
+
 def run_command(cmd, check=True, cwd=None):
-    print(f"Running: {' '.join(cmd)}")
+    console.print(f"[dim]Running command: {' '.join(cmd)}[/dim]")
     try:
         subprocess.run(cmd, check=check, cwd=cwd)
     except subprocess.CalledProcessError as e:
-        print(f"Error running command: {e}")
+        console.print(f"[bold red]Error running command: {e}[/bold red]")
         if check:
             sys.exit(1)
 
-def setup_google_drive(root, venv_python):
+
+def setup_google_drive(root):
+    if not HAS_RICH:
+        console.print("[yellow]⚠️ Cannot start rich Google Drive OAuth helper. Installing dependencies first...[/yellow]")
+        return
+
     gdrive_dir = root / ".agents" / "mcp" / "gdrive"
     service_account_path = gdrive_dir / "service_account.json"
-    credentials_path = gdrive_dir / "credentials.json"
     token_path = gdrive_dir / "token.json"
 
-    print("=" * 60)
-    print("      Google Drive MCP Server Credentials Setup")
-    print("=" * 60)
-    print()
-    print("This guide will help you set up credentials for the read-only")
-    print("Google Drive MCP server.")
-    print()
-    print("Please choose your preferred authentication method:")
-    print("  [1] Google Service Account (Recommended for automated/non-interactive workflows)")
-    print("  [2] Google OAuth 2.0 Client (Recommended for accessing your personal/workspace drive)")
-    print("  [3] Skip/Done (Already configured or set up later)")
-    print()
-    
-    choice = input("Enter choice (1, 2, or 3): ").strip()
+    console.print("\n")
+    console.print(Panel.fit(
+        "[bold cyan]Google Drive MCP Server Credentials Setup[/bold cyan]",
+        border_style="cyan"
+    ))
+    console.print("Configure read-only Google Drive access for the Synthesizer and Researcher agents.")
+    console.print()
+
+    # Check if already authenticated
+    if token_path.exists():
+        console.print("[bold green]✓ Existing Google Drive OAuth token.json detected![/bold green]")
+        reauth = Confirm.ask("Would you like to re-authenticate or sign in with a different account?", default=False)
+        if not reauth:
+            console.print("[green]Keeping current credentials. Google Drive setup skipped.[/green]")
+            return
+
+    console.print("[bold]Select Authentication Method:[/bold]")
+    console.print("  [bold cyan]1[/bold cyan] : [bold green]Automatic OAuth Flow[/bold green] (Easiest - opens browser, signs in automatically)")
+    console.print("  [bold cyan]2[/bold cyan] : [bold yellow]Google Service Account[/bold yellow] (Recommended for non-interactive/headless use)")
+    console.print("  [bold cyan]3[/bold cyan] : [bold red]Skip / Configure Later[/bold red]")
+    console.print()
+
+    choice = Prompt.ask("Choose option", choices=["1", "2", "3"], default="1")
+
     if choice == "3":
-        print("Skipping Google Drive credentials setup.")
+        console.print("[yellow]Google Drive setup skipped.[/yellow]")
         return
-    elif choice not in ("1", "2"):
-        print("Invalid choice. Skipping.")
-        return
-        
-    print()
-    if choice == "1":
-        print("--- Google Service Account Setup ---")
-        print(f"Please place your downloaded Service Account JSON key file at:")
-        print(f"  {service_account_path}")
-        print()
-        print("Steps to obtain this key:")
-        print("1. Go to Google Cloud Console (https://console.cloud.google.com/)")
-        print("2. Enable the Google Drive API for your project")
-        print("3. Go to IAM & Admin > Service Accounts > Create Service Account")
-        print("4. Select the created Service Account, go to Keys > Add Key > Create new key (JSON)")
-        print("5. Share the Google Drive folders/files you want to read with the service account's email address.")
-        print()
-        
+
+    if choice == "2":
+        console.print(Panel(
+            f"Please place your Service Account JSON file at:\n"
+            f"  [bold]{service_account_path}[/bold]\n\n"
+            f"[bold underline]Steps to acquire key:[/bold underline]\n"
+            f"1. Open the [link=https://console.cloud.google.com/]Google Cloud Console[/link].\n"
+            f"2. Enable [bold]Google Drive API[/bold].\n"
+            f"3. Create a [bold]Service Account[/bold] and generate a [bold]JSON key[/bold].\n"
+            f"4. Share your target Google Drive folders/files with the service account email address.",
+            title="Service Account Setup Guide",
+            border_style="yellow"
+        ))
         if service_account_path.exists():
-            print("✓ Success! service_account.json detected in .agents/mcp/gdrive/")
+            console.print("[bold green]✓ service_account.json already exists! Setup complete.[/bold green]")
         else:
-            print("Status: Pending. Please add the file and run setup.py again when ready.")
-            
+            console.print("[yellow]Status: Pending. Setup service_account.json when ready.[/yellow]")
     else:
-        print("--- Google OAuth 2.0 Setup ---")
-        if token_path.exists():
-            print("✓ OAuth token.json already exists! No action needed.")
+        # Automatic OAuth Flow
+        console.print(Panel(
+            "We will launch an interactive Google OAuth browser window.\n"
+            "Once authorized, the access tokens will be automatically saved locally.\n"
+            "[bold green]No manual API key creation or GCP project setup is required![/bold green]",
+            title="Interactive OAuth Flow",
+            border_style="cyan"
+        ))
+
+        if not Confirm.ask("Ready to open browser and authenticate?"):
+            console.print("[yellow]Authentication canceled.[/yellow]")
             return
-            
-        if not credentials_path.exists():
-            print(f"Please download your OAuth client credentials JSON and place it at:")
-            print(f"  {credentials_path}")
-            print()
-            print("Steps to obtain this credentials file:")
-            print("1. Go to Google Cloud Console (https://console.cloud.google.com/)")
-            print("2. Enable the Google Drive API for your project")
-            print("3. Go to APIs & Services > OAuth consent screen (configure Internal or External)")
-            print("4. Go to Credentials > Create Credentials > OAuth client ID (Select Application type: Desktop app)")
-            print("5. Download the client secret JSON file, rename it to credentials.json, and save it to the path above.")
-            print()
-            print("Please run setup.py again after placing credentials.json.")
-            return
-            
-        print("✓ credentials.json detected! Starting the interactive authorization flow...")
-        print("This will open a browser window for you to login and authorize read-only access.")
-        input("Press Enter to start the flow...")
-        print()
-        
+
         try:
-            cmd_python = str(venv_python) if venv_python.exists() else "python3"
-            run_command([cmd_python, str(gdrive_dir / "server.py"), "--auth"])
-            print()
-            print("✓ OAuth Setup Completed successfully!")
+            from google_auth_oauthlib.flow import InstalledAppFlow
+            scopes = ["https://www.googleapis.com/auth/drive.readonly"]
+
+            console.print("[dim]Starting local web server to capture OAuth response...[/dim]")
+            credentials_path = gdrive_dir / "credentials.json"
+            if credentials_path.exists():
+                flow = InstalledAppFlow.from_client_secrets_file(str(credentials_path), scopes)
+            else:
+                flow = InstalledAppFlow.from_client_config(DEFAULT_CLIENT_CONFIG, scopes)
+            creds = flow.run_local_server(port=0)
+
+            # Ensure directory exists
+            gdrive_dir.mkdir(parents=True, exist_ok=True)
+            with open(token_path, "w") as token:
+                token.write(creds.to_json())
+
+            console.print("[bold green]✓ Success! Token successfully generated and saved to token.json.[/bold green]")
+            console.print("[bold green]✓ Google Drive MCP is fully configured and ready to run![/bold green]")
         except Exception as e:
-            print(f"Error executing auth flow: {e}")
+            console.print(f"[bold red]Interactive OAuth flow failed: {e}[/bold red]")
+
 
 def main():
-    print("=" * 60)
-    print("  Agentic Wiki Builder — Complete Setup & Bootstrap")
-    print("=" * 60)
-    print()
-
-    # 1. Git LFS Initialization
-    if not shutil.which("git-lfs"):
-        print("⚠️  WARNING: 'git-lfs' command not found.")
-        print("   Please install Git LFS (https://git-lfs.com/) for tracking large raw sources.")
-        print()
-    else:
-        print("✓ Git LFS found. Registering settings...")
-        run_command(["git", "lfs", "install"])
-        print()
-
-    # 2. Check and Setup QMD CLI (Quick Markdown Search)
-    if not shutil.which("qmd"):
-        print("⚠️  WARNING: 'qmd' command (Quick Markdown Search CLI) not found.")
-        print("   qmd is required for semantic and hybrid search in the wiki MCP server.")
-        print("   To install it, please run:")
-        print("     npm install -g @tobilu/qmd")
-        print()
-        installed = False
-        if shutil.which("npm"):
-            choice = input("Would you like this script to attempt installing it globally via npm? (y/n): ").strip().lower()
-            if choice == "y":
-                print("Installing @tobilu/qmd globally...")
-                run_command(["npm", "install", "-g", "@tobilu/qmd"], check=False)
-                print()
-                if shutil.which("qmd"):
-                    installed = True
-            else:
-                print("Skipping automatic installation.")
-                print()
-        else:
-            print("⚠️  npm not found. Please install Node.js/npm and install qmd manually.")
-            print()
-            
-        if not installed:
-            print("❌ ERROR: 'qmd' is a required dependency for the agentic tools to function.")
-            print("   Please install it (e.g. 'npm install -g @tobilu/qmd') and run setup.py again.")
-            sys.exit(1)
-    else:
-        print("✓ QMD CLI found.")
-        print()
-
-    # 3. Submodule Initialization
-    print("✓ Initializing and updating git submodules...")
-    run_command(["git", "-c", "protocol.file.allow=always", "submodule", "update", "--init", "--recursive"], check=False)
-    print()
-
-    # 4. Configure Git Submodule recurse & automatic push behaviors
-    print("✓ Configuring local Git settings for seamless team collaboration...")
-    
-    # Enable recursive pulling: git pull automatically fetches submodule updates
-    run_command(["git", "config", "submodule.recurse", "true"])
-    
-    # Enable on-demand recursive pushing: git push from parent automatically pushes dirty submodules
-    run_command(["git", "config", "push.recurseSubmodules", "on-demand"])
-    print()
-
-    # 5. Virtual Environment Creation
     root = Path(__file__).resolve().parent
     venv_dir = root / ".venv"
     if sys.platform == "win32":
@@ -168,52 +163,137 @@ def main():
         venv_python = venv_dir / "bin" / "python"
         venv_pip = venv_dir / "bin" / "pip"
 
+    # Re-execute under virtual environment if available to get rich styling
+    if sys.executable != str(venv_python) and venv_python.exists():
+        try:
+            subprocess.run([str(venv_python), "-c", "import rich"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            os.execv(str(venv_python), [str(venv_python)] + sys.argv)
+        except subprocess.CalledProcessError:
+            pass
+
+    # Print Header
+    if HAS_RICH:
+        console.print(Panel(
+            "[bold green]Agentic Wiki Builder[/bold green]\n"
+            "[dim]Complete Bootstrap, Setup, and Google Drive Integration[/dim]",
+            border_style="green",
+            expand=False
+        ))
+    else:
+        console.rule("Agentic Wiki Builder — Complete Setup & Bootstrap")
+
+    # 1. Git LFS Initialization
+    if not shutil.which("git-lfs"):
+        console.print("[bold yellow]⚠️  WARNING: 'git-lfs' command not found.[/bold yellow]")
+        console.print("   Please install Git LFS (https://git-lfs.com/) for tracking large raw sources.")
+    else:
+        console.print("[green]✓ Git LFS found. Registering settings...[/green]")
+        run_command(["git", "lfs", "install"])
+    console.print()
+
+    # 2. Check and Setup QMD CLI (Quick Markdown Search)
+    if not shutil.which("qmd"):
+        console.print("[bold yellow]⚠️  WARNING: 'qmd' command (Quick Markdown Search CLI) not found.[/bold yellow]")
+        console.print("   qmd is required for semantic and hybrid search in the wiki MCP server.")
+        console.print("   To install it, run: [bold]npm install -g @tobilu/qmd[/bold]")
+        
+        installed = False
+        if shutil.which("npm"):
+            install_now = False
+            if HAS_RICH:
+                install_now = Confirm.ask("Would you like this script to attempt installing it globally via npm?", default=True)
+            else:
+                choice = input("Would you like this script to attempt installing it globally via npm? (y/n): ").strip().lower()
+                install_now = (choice == "y")
+
+            if install_now:
+                console.print("[cyan]Installing @tobilu/qmd globally...[/cyan]")
+                run_command(["npm", "install", "-g", "@tobilu/qmd"], check=False)
+                if shutil.which("qmd"):
+                    installed = True
+            else:
+                console.print("[yellow]Skipping automatic installation.[/yellow]")
+        else:
+            console.print("[bold red]⚠️ npm not found. Please install Node.js/npm and install qmd manually.[/bold red]")
+            
+        if not installed:
+            console.print("[bold red]❌ ERROR: 'qmd' is a required dependency for the agentic tools to function.[/bold red]")
+            console.print("   Please install it (e.g. 'npm install -g @tobilu/qmd') and run setup.py again.")
+            sys.exit(1)
+    else:
+        console.print("[green]✓ QMD CLI found.[/green]")
+    console.print()
+
+    # 3. Submodule Initialization
+    console.print("[green]✓ Initializing and updating git submodules...[/green]")
+    run_command(["git", "-c", "protocol.file.allow=always", "submodule", "update", "--init", "--recursive"], check=False)
+    console.print()
+
+    # 4. Configure Git settings
+    console.print("[green]✓ Configuring local Git settings for team collaboration...[/green]")
+    run_command(["git", "config", "submodule.recurse", "true"])
+    run_command(["git", "config", "push.recurseSubmodules", "on-demand"])
+    console.print()
+
+    # 5. Virtual Environment Creation
     if not venv_dir.exists():
-        print("✓ Creating Python virtual environment (.venv)...")
+        console.print("[green]✓ Creating Python virtual environment (.venv)...[/green]")
         run_command([sys.executable, "-m", "venv", str(venv_dir)])
     else:
-        print("✓ Python virtual environment (.venv) already exists.")
-    print()
+        console.print("[green]✓ Python virtual environment (.venv) already exists.[/green]")
+    console.print()
 
     # 6. Installing Dependencies
-    print("✓ Installing and updating dependencies from requirements.txt...")
+    console.print("[green]✓ Installing and updating dependencies from requirements.txt...[/green]")
     if venv_pip.exists():
         run_command([str(venv_pip), "install", "--upgrade", "pip"])
         run_command([str(venv_pip), "install", "-r", "requirements.txt"])
     else:
-        print("⚠️  Could not find pip in virtual environment. Attempting fallback setup...")
+        console.print("[bold yellow]⚠️ Could not find pip in virtual environment. Using fallback...[/bold yellow]")
         run_command([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
-    print()
+    console.print()
 
     # 7. Environment Configuration (.env)
     env_file = root / ".env"
     example_env_file = root / ".example.env"
     if not env_file.exists():
         if example_env_file.exists():
-            print("✓ Creating .env file from .example.env...")
+            console.print("[green]✓ Creating .env file from .example.env...[/green]")
             shutil.copy(example_env_file, env_file)
-            print("👉 Created .env file. Please update it with your API credentials if necessary.")
+            console.print("👉 Created .env file. Please update it with your API credentials if necessary.")
         else:
-            print("⚠️  Could not find .example.env to generate .env.")
+            console.print("[bold yellow]⚠️ Could not find .example.env to generate .env.[/bold yellow]")
     else:
-        print("✓ .env file already exists.")
-    print()
+        console.print("[green]✓ .env file already exists.[/green]")
+    console.print()
+
+    # Re-execute under virtual environment if we just installed rich to run the Google Drive setup with rich styling
+    if sys.executable != str(venv_python) and venv_python.exists() and not HAS_RICH:
+        console.print("[cyan]Re-launching setup inside virtual environment to finalize Google Drive configuration...[/cyan]")
+        os.execv(str(venv_python), [str(venv_python)] + sys.argv)
 
     # 8. Google Drive Credentials Setup
     try:
-        setup_google_drive(root, venv_python)
+        setup_google_drive(root)
     except Exception as e:
-        print(f"⚠️  Google Drive credentials setup encountered an issue: {e}")
-    print()
+        console.print(f"[bold yellow]⚠️ Google Drive credentials setup encountered an issue: {e}[/bold yellow]")
+    console.print()
 
-    print("=" * 60)
-    print("✓ Setup Complete!")
-    print("- Submodules will now automatically pull updates during a standard 'git pull'.")
-    print("- Commits in submodules will automatically push when you run 'git push' from the parent repository.")
-    print("- Virtual environment is configured and dependencies are installed.")
-    print("- Environment (.env) has been prepared.")
-    print("- QMD CLI verification completed.")
-    print("=" * 60)
+    console.print("\n")
+    if HAS_RICH:
+        console.print(Panel(
+            "[bold green]✓ Bootstrap & Setup Complete![/bold green]\n\n"
+            "- Submodules will now automatically pull updates during a standard 'git pull'.\n"
+            "- Commits in submodules will automatically push when you run 'git push' from the parent repository.\n"
+            "- Virtual environment is configured and dependencies are installed.\n"
+            "- Environment (.env) has been prepared.\n"
+            "- Google Drive MCP server is authenticated and ready to run.",
+            border_style="green",
+            expand=False
+        ))
+    else:
+        console.rule("Setup Complete!")
+
 
 if __name__ == "__main__":
     main()

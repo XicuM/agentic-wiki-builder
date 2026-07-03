@@ -1,25 +1,32 @@
 {
   "mcpServers": {
     "finance-mcp": {
-      "command": "/home/user/Projects/agentic-wiki-builder/.venv/bin/python",
-      "args": ["/home/user/Projects/agentic-wiki-builder/.agents/mcp/finance/server.py"],
+      "command": "/home/user/Projects/hpdsa_wiki/.venv/bin/python",
+      "args": ["/home/user/Projects/hpdsa_wiki/.agents/mcp/finance/server.py"],
       "env": {
-        "PROJECT_ROOT": "/home/user/Projects/agentic-wiki-builder"
+        "PROJECT_ROOT": "/home/user/Projects/hpdsa_wiki"
       }
     },
     "wiki-mcp": {
-      "command": "/home/user/Projects/agentic-wiki-builder/.venv/bin/python",
-      "args": ["/home/user/Projects/agentic-wiki-builder/.agents/mcp/wiki/server.py"],
+      "command": "/home/user/Projects/hpdsa_wiki/.venv/bin/python",
+      "args": ["/home/user/Projects/hpdsa_wiki/.agents/mcp/wiki/server.py"],
       "env": {
-        "PROJECT_ROOT": "/home/user/Projects/agentic-wiki-builder"
+        "PROJECT_ROOT": "/home/user/Projects/hpdsa_wiki"
       }
     },
     "research-mcp": {
-      "command": "/home/user/Projects/agentic-wiki-builder/.venv/bin/python",
-      "args": ["/home/user/Projects/agentic-wiki-builder/.agents/mcp/research/server.py"],
+      "command": "/home/user/Projects/hpdsa_wiki/.venv/bin/python",
+      "args": ["/home/user/Projects/hpdsa_wiki/.agents/mcp/research/server.py"],
       "env": {
-        "PROJECT_ROOT": "/home/user/Projects/agentic-wiki-builder",
+        "PROJECT_ROOT": "/home/user/Projects/hpdsa_wiki",
         "SEMANTIC_SCHOLAR_API_KEY": "REDACTED"
+      }
+    },
+    "google-drive-mcp": {
+      "command": "/home/user/Projects/hpdsa_wiki/.venv/bin/python",
+      "args": ["/home/user/Projects/hpdsa_wiki/.agents/mcp/gdrive/server.py"],
+      "env": {
+        "PROJECT_ROOT": "/home/user/Projects/hpdsa_wiki"
       }
     }
   }

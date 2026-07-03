@@ -7,7 +7,8 @@
         ".venv/bin/python",
         ".agents/mcp/finance/server.py"
       ],
-      "environment": {}
+      "environment": {},
+      "enabled": true
     },
     "wiki-mcp": {
       "type": "local",
@@ -15,7 +16,8 @@
         ".venv/bin/python",
         ".agents/mcp/wiki/server.py"
       ],
-      "environment": {}
+      "environment": {},
+      "enabled": true
     },
     "research-mcp": {
       "type": "local",
@@ -25,7 +27,17 @@
       ],
       "environment": {
         "SEMANTIC_SCHOLAR_API_KEY": ""
-      }
+      },
+      "enabled": true
+    },
+    "google-drive-mcp": {
+      "type": "local",
+      "command": [
+        ".venv/bin/python",
+        ".agents/mcp/gdrive/server.py"
+      ],
+      "environment": {},
+      "enabled": true
     }
   }
 }

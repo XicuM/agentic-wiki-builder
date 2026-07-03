@@ -112,12 +112,35 @@ def main():
         run_command(["git", "lfs", "install"])
         print()
 
-    # 2. Submodule Initialization
+    # 2. Check and Setup QMD CLI (Quick Markdown Search)
+    if not shutil.which("qmd"):
+        print("⚠️  WARNING: 'qmd' command (Quick Markdown Search CLI) not found.")
+        print("   qmd is required for semantic and hybrid search in the wiki MCP server.")
+        print("   To install it, please run:")
+        print("     npm install -g @tobilu/qmd")
+        print()
+        if shutil.which("npm"):
+            choice = input("Would you like this script to attempt installing it globally via npm? (y/n): ").strip().lower()
+            if choice == "y":
+                print("Installing @tobilu/qmd globally...")
+                run_command(["npm", "install", "-g", "@tobilu/qmd"], check=False)
+                print()
+            else:
+                print("Skipping automatic installation.")
+                print()
+        else:
+            print("⚠️  npm not found. Please install Node.js/npm and install qmd manually.")
+            print()
+    else:
+        print("✓ QMD CLI found.")
+        print()
+
+    # 3. Submodule Initialization
     print("✓ Initializing and updating git submodules...")
     run_command(["git", "-c", "protocol.file.allow=always", "submodule", "update", "--init", "--recursive"], check=False)
     print()
 
-    # 3. Configure Git Submodule recurse & automatic push behaviors
+    # 4. Configure Git Submodule recurse & automatic push behaviors
     print("✓ Configuring local Git settings for seamless team collaboration...")
     
     # Enable recursive pulling: git pull automatically fetches submodule updates
@@ -127,7 +150,7 @@ def main():
     run_command(["git", "config", "push.recurseSubmodules", "on-demand"])
     print()
 
-    # 4. Virtual Environment Creation
+    # 5. Virtual Environment Creation
     root = Path(__file__).resolve().parent
     venv_dir = root / ".venv"
     if sys.platform == "win32":
@@ -144,7 +167,7 @@ def main():
         print("✓ Python virtual environment (.venv) already exists.")
     print()
 
-    # 5. Installing Dependencies
+    # 6. Installing Dependencies
     print("✓ Installing and updating dependencies from requirements.txt...")
     if venv_pip.exists():
         run_command([str(venv_pip), "install", "--upgrade", "pip"])
@@ -154,7 +177,7 @@ def main():
         run_command([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
     print()
 
-    # 6. Environment Configuration (.env)
+    # 7. Environment Configuration (.env)
     env_file = root / ".env"
     example_env_file = root / ".example.env"
     if not env_file.exists():
@@ -168,7 +191,7 @@ def main():
         print("✓ .env file already exists.")
     print()
 
-    # 7. Google Drive Credentials Setup
+    # 8. Google Drive Credentials Setup
     try:
         setup_google_drive(root, venv_python)
     except Exception as e:
@@ -181,6 +204,7 @@ def main():
     print("- Commits in submodules will automatically push when you run 'git push' from the parent repository.")
     print("- Virtual environment is configured and dependencies are installed.")
     print("- Environment (.env) has been prepared.")
+    print("- QMD CLI verification completed.")
     print("=" * 60)
 
 if __name__ == "__main__":

@@ -1,6 +1,4 @@
-sentence-transformers
 numpy
-tqdm
 markitdown[pdf]
 pytest
 yfinance
@@ -11,3 +9,6 @@ torch
 mcp[cli]
 httpx
 academic-mcp
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib

@@ -21,8 +21,5 @@ opencode-sync/
 .obsidian/recent-files.json
 .obsidian/backlink-cache.json
 
-# Copsilot plugin personal session data
-.obsidian/plugins/copsilot/data.json
-
 # Temporary workspace
 tmp/

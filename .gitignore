@@ -11,8 +11,9 @@ logs/
 # OpenCode runtime sync files
 opencode-sync/
 
-# Copsilot plugin personal session data
+# Plugin personal session data
 .obsidian/plugins/copsilot/data.json
+.obsidian/plugins/opencode/data.json
 
 # Local MCP and index caches / secrets
 .agents/mcp/gdrive/credentials.json

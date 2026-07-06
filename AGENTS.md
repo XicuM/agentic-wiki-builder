@@ -1,6 +1,6 @@
 # Agentic Wiki Builder: Agent Architecture & Philosophy
 
-The Agentic Wiki Builder is designed around a **filesystem-driven, evidence-based agent architecture**. Rather than relying on a centralized orchestration framework or runtime memory, agents coordinate asynchronously using the repository's files and git submodules as a decoupled, declarative state-sharing layer.
+The Agentic Wiki Builder is designed around a **filesystem-driven, evidence-based agent architecture**. Rather than relying on a centralized orchestration framework or runtime memory, agents coordinate asynchronously using the repository's files and decoupled git repositories as a declarative state-sharing layer.
 
 ---
 
@@ -18,8 +18,8 @@ Agents operate as functional layers of the evidence-to-action pipeline:
 The coordination is asynchronous, mediated by the file structure:
 *   **Staging (`sources/`)**: Ground for raw evidence and metadata.
 *   **Manifest (`sources/state.json`)**: Orchestration queue for pending ingestion.
-*   **Wiki (`wiki/` submodule)**: Objective knowledge base (anonymized, theory-focused).
-*   **User Workspace (`user/` submodule)**: Personalized deliverables (user profiles, feedback, actionable protocols).
+*   **Wiki (`wiki/` repository)**: Objective knowledge base (anonymized, theory-focused).
+*   **User Workspace (`user/` repository)**: Personalized deliverables (user profiles, feedback, actionable protocols).
 *   **Temporary Workspace (`tmp/`)**: Used for temporal edits, temporary data storage, or scratchpad operations when the user is adding information or data.
 
 ---
@@ -43,8 +43,8 @@ The coordination is asynchronous, mediated by the file structure:
 *   **User Profile**: Persist only structural, recurring traits (goals, constraints, physiology). Never save anecdotal one-off events.
 
 ### Workspace Structure & Version Control
-*   **Always Synchronize First**: Before executing any task that modifies the repository or its submodules, you must synchronize with the remote (e.g., `git pull` in the root and relevant submodules) to avoid conflicts and ensure you are working on the latest state.
-*   **Submodule Isolation**: The `wiki/` and `user/` directories are independent git submodules. Commits must be made directly within the submodules to serve as a status log of agent operations.
+*   **Always Synchronize First**: Before executing any task that modifies the repository or its data repositories, you must synchronize with the remote (e.g., `git pull` in the root and relevant data directories) to avoid conflicts and ensure you are working on the latest state.
+*   **Decoupled Repositories**: The `wiki/`, `user/`, and `sources/` directories are independent git repositories. They are completely ignored by the main project's git index. Commits must be made directly within these decoupled repositories to serve as a status log of agent operations.
 *   **Index Catalogs**: Every directory must contain an `_index.md` listing its contents with one-line summaries. Do not place task/progress markers in index catalogs.
 *   **Folder Bloat Limit**: Maximum of 15 content files per directory (excluding `_index.md`). Restructure into subdirectories when this limit is exceeded.
 *   **YAML Frontmatter**: Every non-index markdown file in `wiki/` and `user/` must begin with a standardized YAML frontmatter containing `title`, `category` (relative directory path under collection root), `related` (list of linked internal relative files), and `rationale` (concise single-sentence design philosophy/organizational justification). This frontmatter is validated by `lint_check_links` and is indexed for search via `wiki_update_index`.

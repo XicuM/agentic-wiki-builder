@@ -21,16 +21,16 @@ MenuMaker is a suite of tools that compute **science-based, cost-optimized healt
 
 ## The Wiki / User Boundary Strict Workflow
 
-This project adheres strictly to the **wiki (objective) vs user (actionable)** separation of concerns. You must use the tools in the appropriate submodule context.
+This project adheres strictly to the **wiki (objective) vs user (actionable)** separation of concerns. You must use the tools in the appropriate decoupled repository context.
 
-### Objective Knowledge Base (`wiki/` submodule)
+### Objective Knowledge Base (`wiki/` repository)
 *   Must remain anonymous and objective. Do not include user-specific data.
 *   **Relevant Tools**:
     *   `search_foods(query)`: Search for foods to document.
     *   `get_food_nutrients(food_name)`: Get the objective macronutrient and micronutrient profiles.
-*   **Workflow**: When investigating a food's properties, create an objective profile in the `wiki/` submodule (e.g., `wiki/nutrition/chicken_breast.md`).
+*   **Workflow**: When investigating a food's properties, create an objective profile in the `wiki/` repository (e.g., `wiki/nutrition/chicken_breast.md`).
 
-### Actionable Protocols & User Context (`user/` submodule)
+### Actionable Protocols & User Context (`user/` repository)
 *   Personalized, step-by-step instructions.
 *   **Relevant Tools**:
     *   `get_intake_targets(age, gender, stage)`: Computes daily targets. Always extract the arguments (age, gender) from the user's profile located in the `user/` workspace.

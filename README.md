@@ -2,7 +2,7 @@
 
 A modular, evidence-based system that automates the transformation of raw information (such as scientific literature, data, and documents) into a structured knowledge base (Wiki) and translates it into personalized, actionable guidelines (Protocols).
 
-The architecture is entirely **filesystem-driven** and framework-agnostic. Multiple agents (or a single agent playing multiple roles) coordinate asynchronously by writing state changes to the filesystem and git submodules.
+The architecture is entirely **filesystem-driven** and framework-agnostic. Multiple agents (or a single agent playing multiple roles) coordinate asynchronously by writing state changes to the filesystem and decoupled git repositories.
 
 ---
 
@@ -24,24 +24,24 @@ graph TD
 
 ## 📁 Repository Structure
 
+
 ```text
 ├── .agents/          # Agent scripts, tools, and execution packages (skills)
 │   ├── mcp/          # Model Context Protocol (MCP) servers (wiki, research, finance)
 │   └── skills/       # Action packages (ingest, build-protocol, fact-check)
 ├── sources/          # Unified staging area for all raw inputs (literature, code, docs)
 ├── tmp/              # Temporary workspace for temporal edits, user additions, and scratchpads
-├── wiki/             # Git Submodule: Synthesized, objective knowledge base (anonymized)
-├── user/             # Git Submodule: Personal profile, feedback, and active protocols
+├── wiki/             # Decoupled Repository: Synthesized, objective knowledge base (anonymized)
+├── user/             # Decoupled Repository: Personal profile, feedback, and active protocols
 └── sources/state.json # Central execution manifest & ingestion queue
 ```
 
 ---
 
 ## 🛠 Features & Capabilities
-
 * **Asynchronous Handoffs**: Coordination mediated completely by `sources/state.json` and index updates. No active runtime orchestration is required.
 * **Model Context Protocol (MCP)**: Native servers (`research-mcp`, `wiki-mcp`, `finance-mcp`) allow LLMs to query databases, search literature, and run portfolio math.
-* **Hermetic Submodules**: The `wiki/` and `user/` directories are decoupled git submodules to ensure clear boundaries between objective knowledge and user-private context.
+* **Hermetic Repositories**: The `wiki/` and `user/` directories are decoupled git repositories to ensure clear boundaries between objective knowledge and user-private context.
 
 ---
 
@@ -50,7 +50,7 @@ graph TD
 Follow these steps to set up the project locally:
 
 ### 1. Clone the Repository
-Clone the repository along with its submodules:
+Clone the repository and initialize the workspaces:
 ```bash
 git clone --recursive https://github.com/XicuM/agentic-wiki-builder.git
 cd agentic-wiki-builder

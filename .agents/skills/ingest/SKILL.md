@@ -23,4 +23,4 @@ Execute as `synthesis-agent` (multi-agent) or sequentially (single agent).
    - Rebuild the semantic index using the `wiki_update_index` tool.
    - Run the `lint_check_links` tool to verify the new/updated file's frontmatter and links pass validation.
    - Remove the ingested item from `sources/state.json`.
-5. **Commit**: Commit activity using `git commit -m "..."` within the appropriate submodule.
+5. **Commit**: Commit activity using `git commit -m "..."` within the appropriate decoupled repository.

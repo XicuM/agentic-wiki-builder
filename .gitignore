@@ -23,3 +23,6 @@ opencode-sync/
 
 # Temporary workspace
 tmp/
+user/
+wiki/
+sources/

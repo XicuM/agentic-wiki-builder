@@ -1,6 +1,4 @@
-sentence-transformers
 numpy
-tqdm
 markitdown[pdf]
 pytest
 yfinance
@@ -22,3 +20,7 @@ lxml>=5.0
 mercapy>=1.0
 matplotlib>=3.7
 html5lib>=1.1
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+rich

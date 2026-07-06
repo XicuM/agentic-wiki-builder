@@ -2,13 +2,13 @@
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "finance-mcp": {
-      "enabled": false,
       "type": "local",
       "command": [
         ".venv/bin/python",
         ".agents/mcp/finance/server.py"
       ],
-      "environment": {}
+      "environment": {},
+      "enabled": true
     },
     "wiki-mcp": {
       "type": "local",
@@ -30,16 +30,14 @@
       },
       "enabled": true
     },
-    "menumaker": {
-      "enabled": false,
+    "google-drive-mcp": {
       "type": "local",
       "command": [
         ".venv/bin/python",
-        ".agents/mcp/menumaker/server.py"
+        ".agents/mcp/gdrive/server.py"
       ],
-      "environment": {
-        "MENUMAKER_DATA_DIR": "/home/user/Projects/agentic-wiki-builder/.agents/mcp/menumaker/data"
-      }
+      "environment": {},
+      "enabled": true
     }
   }
 }

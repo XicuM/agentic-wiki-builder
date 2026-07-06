@@ -363,7 +363,60 @@ def _sanitize(text: str) -> str:
 
 
 async def _resolve_metadata(paper_id: str) -> PaperMetadata:
-    """Dispatch to the correct metadata fetcher based on paper_id prefix."""
+    """Resolve paper ID (accepts URLs, raw DOIs, search queries, or provider prefixes), then fetch metadata."""
+    paper_id = paper_id.strip()
+    
+    # 1. Resolve URLs
+    if paper_id.startswith("http://") or paper_id.startswith("https://"):
+        if "arxiv.org/abs/" in paper_id or "arxiv.org/pdf/" in paper_id:
+            m = re.search(r"arxiv.org/(?:abs|pdf)/([\d.]+)(?:\.pdf)?", paper_id)
+            if m:
+                paper_id = f"arXiv:{m.group(1)}"
+        elif "pubmed.ncbi.nlm.nih.gov/" in paper_id:
+            m = re.search(r"pubmed.ncbi.nlm.nih.gov/(\d+)", paper_id)
+            if m:
+                paper_id = f"pmid:{m.group(1)}"
+        elif "openalex.org/" in paper_id:
+            m = re.search(r"openalex.org/(?:works/)?(W\d+)", paper_id)
+            if m:
+                paper_id = f"openalex:{m.group(1)}"
+        elif "doi.org/" in paper_id:
+            m = re.search(r"doi.org/(10\.\d{4,9}/[-._;()/:A-Z0-9]+)", paper_id, re.IGNORECASE)
+            if m:
+                paper_id = f"DOI:{m.group(1)}"
+                
+    # 2. Check if raw DOI
+    if re.match(r"^10\.\d{4,9}/", paper_id):
+        paper_id = f"DOI:{paper_id}"
+
+    # 3. If paper_id has no prefix and is not a 40-char hex string (Semantic Scholar ID),
+    # treat it as a search query
+    is_hex_id = bool(re.match(r"^[0-9a-fA-F]{40}$", paper_id))
+    has_prefix = ":" in paper_id
+    
+    if not has_prefix and not is_hex_id:
+        print(f"Title or search query detected: '{paper_id}'. Searching literature...")
+        search_results = await search_literature(paper_id, limit=1)
+        if search_results:
+            first_paper = search_results[0]
+            resolved_id = first_paper.get("paperId")
+            if not resolved_id:
+                ext = first_paper.get("externalIds") or {}
+                if ext.get("DOI"):
+                    resolved_id = f"DOI:{ext.get('DOI')}"
+                elif ext.get("ArXiv"):
+                    resolved_id = f"arXiv:{ext.get('ArXiv')}"
+                elif ext.get("PubMed"):
+                    resolved_id = f"pmid:{ext.get('PubMed')}"
+            if resolved_id:
+                print(f"Resolved query '{paper_id}' to paper ID '{resolved_id}'")
+                paper_id = resolved_id
+            else:
+                raise ValueError(f"Found search results for '{paper_id}', but could not resolve a valid provider ID.")
+        else:
+            raise ValueError(f"Could not find any papers matching the query: '{paper_id}'")
+
+    # 4. Dispatch to the correct metadata fetcher based on paper_id prefix
     if paper_id.startswith("openalex:"):
         meta = await _fetch_openalex(paper_id)
     elif paper_id.startswith("pmid:") or paper_id.startswith("pmcid:"):
@@ -377,7 +430,7 @@ async def _resolve_metadata(paper_id: str) -> PaperMetadata:
         if not meta:
             meta = await _fetch_arxiv(paper_id)
     else:
-        # Raw Semantic Scholar hash
+        # Raw Semantic Scholar hash or DOI:xxx
         meta = await _fetch_semantic_scholar(paper_id)
 
     if meta is None:

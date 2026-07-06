@@ -94,16 +94,33 @@ async def _run_script(script: str, *args: str) -> str:
 
 @mcp.tool()
 async def wiki_search(
-    query: Annotated[str, "Keyword or grep-style query"],
+    query: Annotated[str, "The search query (natural language, keyword, or grep pattern)"],
     collection: Annotated[
         Literal["wiki", "protocols", "sources", "all"],
         "Restrict to a specific collection (default: all)",
     ] = "all",
+    method: Annotated[
+        Literal["hybrid", "semantic", "keyword"],
+        "Search strategy to employ (default: hybrid)",
+    ] = "hybrid",
+    limit: Annotated[int, "Maximum number of results to return (default 5)"] = 5,
+    min_score: Annotated[float, "Minimum relevance score threshold (0-1, default 0.0)"] = 0.0,
 ) -> str:
-    """Keyword/grep search across the wiki, protocols, and sources collections."""
-    args = ["search", query]
-    if collection != "all":
-        args += ["-c", collection]
+    """Consolidated search tool: supports keyword (grep), semantic (vector), and hybrid strategies."""
+    if method == "keyword":
+        args = ["search", query]
+        if collection != "all":
+            args += ["-c", collection]
+    elif method == "semantic":
+        args = ["vsearch", query, "-n", str(limit)]
+        if collection != "all":
+            args += ["-c", collection]
+    else:  # hybrid
+        args = ["query", query]
+        if collection != "all":
+            args += ["-c", collection]
+        if min_score > 0:
+            args += ["--min-score", str(min_score)]
     return await _qmd(*args)
 
 
@@ -116,11 +133,8 @@ async def wiki_vsearch(
         "Restrict to a specific collection (default: all)",
     ] = "all",
 ) -> str:
-    """Semantic (vector) search using the pre-built sentence-transformers index."""
-    args = ["vsearch", query, "-n", str(n)]
-    if collection != "all":
-        args += ["-c", collection]
-    return await _qmd(*args)
+    """Semantic (vector) search (deprecated: use wiki_search with method='semantic' instead)."""
+    return await wiki_search(query, collection=collection, method="semantic", limit=n)
 
 
 @mcp.tool()
@@ -132,31 +146,125 @@ async def wiki_query(
     ] = "all",
     min_score: Annotated[float, "Minimum relevance score threshold (0–1, default 0.0)"] = 0.0,
 ) -> str:
-    """Best-quality hybrid search: BM25 + vector + LLM re-ranking. Use for precision queries."""
-    args = ["query", query]
-    if collection != "all":
-        args += ["-c", collection]
-    if min_score > 0:
-        args += ["--min-score", str(min_score)]
-    return await _qmd(*args)
+    """Best-quality hybrid search (deprecated: use wiki_search with method='hybrid' instead)."""
+    return await wiki_search(query, collection=collection, method="hybrid", min_score=min_score)
 
 
 @mcp.tool()
 async def wiki_get(
     path: Annotated[
         str,
-        "Relative path to a document (e.g. 'wiki/nutrition/protein.md'). "
-        "Relative to PROJECT_ROOT.",
+        "Relative path or filename (e.g. 'sargantana_core.md' or 'wiki/riscv_cores/sargantana_core.md').",
     ],
 ) -> str:
-    """Retrieve the full content of a specific document by its relative path."""
-    return await _qmd("get", path)
+    """Retrieve the full content of a specific document by its relative path or filename. Auto-resolves basenames if unique."""
+    resolved_path = Path(path)
+    if not (ROOT / resolved_path).exists():
+        # Search under wiki/, user/protocols/, sources/literature/
+        name_query = resolved_path.name
+        matches = []
+        for search_dir in ["wiki", "user/protocols", "sources/literature"]:
+            dir_path = ROOT / search_dir
+            if dir_path.exists():
+                matches.extend(list(dir_path.rglob(f"*{name_query}*")))
+        
+        matches = sorted(list(set([m for m in matches if m.is_file()])))
+        
+        if len(matches) == 1:
+            resolved_path = matches[0].relative_to(ROOT)
+        elif len(matches) > 1:
+            options = "\n".join([f"- {m.relative_to(ROOT)}" for m in matches])
+            return f"Error: Multiple files matched '{path}'. Please specify the exact path:\n{options}"
+        else:
+            return f"Error: File '{path}' not found."
+    else:
+        if resolved_path.is_absolute():
+            resolved_path = resolved_path.relative_to(ROOT)
+            
+    return await _qmd("get", str(resolved_path))
 
 
 @mcp.tool()
 async def wiki_update_index() -> str:
     """Rebuild the qmd semantic index after adding or modifying wiki/source files."""
     return await _qmd("update")
+
+
+@mcp.tool()
+async def complete_source_synthesis(
+    queue_id: Annotated[str, "The ID of the enqueued item (e.g., 'smith_2023_protein_synthesis')"],
+    wiki_path: Annotated[str, "Target file path to write the synthesis (relative to PROJECT_ROOT, e.g. 'wiki/nutrition/protein.md')"],
+    content: Annotated[str, "Markdown content to write to the wiki file"],
+    category: Annotated[str, "YAML frontmatter category (e.g., 'nutrition')"],
+    rationale: Annotated[str, "YAML frontmatter rationale sentence explaining the page design"],
+    related: Annotated[list[str], "List of related internal markdown link paths"],
+    title: Annotated[str, "Title of the wiki page"],
+) -> str:
+    """Atomic transaction tool: Writes wiki page with standard frontmatter, marks the queue item as done, updates search index, and runs link audits."""
+    import datetime
+    target_file = ROOT / wiki_path
+    
+    # 1. Ensure target directory exists
+    target_file.parent.mkdir(parents=True, exist_ok=True)
+    
+    # 2. Add standardized YAML frontmatter if not present in content
+    if not content.strip().startswith("---"):
+        related_str = "\n".join([f"  - \"{r}\"" for r in related])
+        frontmatter = (
+            f"---\n"
+            f"title: \"{title}\"\n"
+            f"category: \"{category}\"\n"
+            f"related:\n{related_str}\n"
+            f"rationale: \"{rationale}\"\n"
+            f"---\n\n"
+        )
+        content = frontmatter + content
+        
+    # 3. Write content to the target file
+    try:
+        target_file.write_text(content, encoding="utf-8")
+    except Exception as e:
+        return f"Error writing wiki file: {e}"
+        
+    # 4. Update state.json (mark queue item status as 'done')
+    state_path = ROOT / "state.json"
+    queue_updated = False
+    if state_path.exists():
+        try:
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            queue = state.setdefault("ingestion_queue", [])
+            for item in queue:
+                if item.get("id") == queue_id:
+                    item["status"] = "done"
+                    item["completed_at"] = datetime.datetime.now().isoformat()
+                    queue_updated = True
+                    break
+            if queue_updated:
+                state_path.write_text(json.dumps(state, indent=2), encoding="utf-8")
+        except Exception as e:
+            return f"Wiki file written, but failed to update state.json queue: {e}"
+            
+    # 5. Rebuild search index
+    index_res = ""
+    try:
+        index_res = await _qmd("update")
+    except Exception as e:
+        index_res = f"Index update error: {e}"
+        
+    # 6. Run link audits on target directory
+    audit_res = ""
+    try:
+        audit_res = await _run_script("check_links.py", str(target_file.parent))
+    except Exception as e:
+        audit_res = f"Link checker error: {e}"
+        
+    res_summary = (
+        f"✓ Successfully wrote wiki page to: {wiki_path}\n"
+        f"✓ Queue status for '{queue_id}' updated to 'done': {queue_updated}\n"
+        f"--- Index Update Output ---\n{index_res}\n"
+        f"--- Link Auditor Output ---\n{audit_res}"
+    )
+    return res_summary
 
 
 # ─────────────────────────────────────────────────────────────────────────────
